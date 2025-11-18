@@ -10,16 +10,16 @@ help:
 
 
 back-dev: ## Executa FastAPI em modo dev (reload)
-	@fastapi dev $(APP)
+	@cd back && fastapi dev $(APP)
 
 back-prd: ## Executa FastAPI em modo normal
-	@fastapi run $(APP)
+	@cd back && fastapi run $(APP)
 
 back-coverage: ## Roda pytest com cobertura
-	@pytest --cov=. --cov-report=term-missing
+	@cd back && pytest --cov=. --cov-report=term-missing
 
 back-test: ## Roda pytest com verbose nos testes/
-	@pytest -v tests/
+	@cd back && pytest -v tests/
 
 front-dev: ## executa o front end
 	@cd front && ng serve --no-open --host 0.0.0.0 --port 8080
