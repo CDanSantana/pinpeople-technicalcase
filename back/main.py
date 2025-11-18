@@ -19,6 +19,7 @@ settings = Dynaconf(
     validators=[
         Validator("DATABASE_URL", default="sqlite:///:memory:"),
         Validator("DATABASE_DRIVER", default="sqlite"),
+        Validator("ENABLE_SENTIMENT_ENDPOINT", default=False),
     ]
 )
 

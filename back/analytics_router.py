@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from typing import Optional, List, Dict, Any
 from models import RespostaPesquisa, Area, Cargo, TempoEmpresa, Participante
 from analytics_stats import stats_basic, percentiles, iqr
-from main import get_session
+from main import get_session, settings
 from transformers import pipeline
 import re
 from collections import Counter
@@ -14,10 +14,12 @@ from collections import Counter
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
-sentiment_model = pipeline(
-    "sentiment-analysis",
-    model="lipaoMai/bert-sentiment-model-portuguese"
-)
+sentiment_model = None
+if settings.ENABLE_SENTIMENT_ENDPOINT:
+    sentiment_model = pipeline(
+        "sentiment-analysis",
+        model="lipaoMai/bert-sentiment-model-portuguese"
+    )
 
 
 SCORE_FIELDS = [
@@ -271,6 +273,8 @@ def get_sentiment_analysis(
     tempo_empresa_id: Optional[int] = Query(None),
     topic: str = Query(..., enum=VALID_COMMENT_TOPICS)
 ):
+    if sentiment_model is None:
+        return {"message": "This endpoint is not enabled"}
     try:
         score_col_name, comment_col_name = COMMENT_TOPIC_MAP[topic]
     except KeyError:
