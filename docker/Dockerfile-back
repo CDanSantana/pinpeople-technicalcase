@@ -1,0 +1,46 @@
+# ---------- BUILDER STAGE ----------
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# Instala dependências necessárias para compilar libs (se necessário)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia requirements
+COPY /back/requirements.txt .
+
+# Instala dependências em uma venv dentro da imagem
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# ---------- FINAL IMAGE ----------
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copia a venv do builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copia o código da aplicação
+COPY /back/tests/ .
+COPY /back/.env.prd .env
+COPY /back/analytics_router.py .
+COPY /back/analytics_stats.py .
+COPY /back/data_setup.py .
+COPY /back/data.csv .
+COPY /back/main.py .
+COPY /Makefile .
+COPY /back/models.py .
+COPY /README.md .
+COPY /back/requirements.txt .
+COPY /back/router_factore.py .
+
+# Porta da API
+EXPOSE 8000
+
+# Comando de inicialização
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

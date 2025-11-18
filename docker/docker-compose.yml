@@ -1,0 +1,40 @@
+#version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile-back
+    container_name: fastapi_back
+    restart: always
+    env_file: ../back/.env.prd
+    image: fastapi_back_image
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: fastapi_db
+    restart: always
+    env_file: ../back/.env.prd
+    ports:
+      - "5432:5432"
+    volumes:
+      - fastapi_db_data:/var/lib/postgresql/data
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile-front
+    container_name: fastapi_front
+    image: fastapi_front_image
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  fastapi_db_data:
