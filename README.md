@@ -136,7 +136,7 @@ Select the tasks you wish to complete by marking them with an `X` in the `[ ]` b
 - [X] **Task 7**: Data Visualization - Area Level
 - [X] **Task 8**: Data Visualization - Employee Level
 - [X] **Task 9**: Build a Simple API
-- [ ] **Task 10**: Sentiment Analysis
+- [X] **Task 10**: Sentiment Analysis
 - [ ] **Task 11**: Report Generation
 - [ ] **Task 12**: Creative Exploration
 
