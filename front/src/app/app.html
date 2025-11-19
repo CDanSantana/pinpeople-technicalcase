@@ -12,6 +12,8 @@
       @for (route of availableRoutes; track route.name) {
       <button (click)="selectRoute(route)"
         [class]="{'bg-indigo-600 text-white shadow-md': selectedRoute().name === route.name, 'text-gray-700 hover:bg-indigo-50': selectedRoute().name !== route.name}"
+        [ariaSelected]="selectedRoute().name === route.name"
+        [ariaPressed]="selectedRoute().name === route.name"
         class="px-4 py-2 text-sm font-medium rounded-lg transition duration-150 ease-in-out whitespace-nowrap">
         {{ route.name }}
       </button>
