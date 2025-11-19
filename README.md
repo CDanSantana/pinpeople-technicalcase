@@ -8,6 +8,8 @@ Some shortcuts are defined in the **Makefile**. You will need **make** installed
 
 The chosen tasks are marked in the appropriate section.
 
+**The sentiment analysis using ai is disabled by default. To enable, edit the `back/.env.prd` and change the property to `true`.**
+
 ---
 
 ## Dependencies
