@@ -10,6 +10,163 @@ The chosen tasks are marked in the appropriate section.
 
 ---
 
+## Dependencies
+
+### Back-end (Python + FastAPI)
+
+* **Python:** `3.11`
+* **Framework & server:** `fastapi[all]`, `uvicorn[standard]`
+* **Database:** `psycopg[binary]`, `psycopg2-binary`, `SQLAlchemy`, `sqlmodel`, `alembic`
+* **Auth & Security:** `python-jose[cryptography]`, `passlib[bcrypt]`, `bcrypt`, `cryptography`, `zxcvbn`, `fastauth_iq`
+* **HTTP & Config:** `requests`, `dynaconf`, `python-dotenv`
+* **Testing:** `pytest`, `pytest-asyncio`, `pytest-cov`
+* **AI / ML for Sentiment Analysis:** `transformers`, `torch`, `accelerate`, `huggingface-hub`
+
+Install dependencies:
+
+```bash
+cd back
+pip install -r requirements.txt
+```
+
+**It's recommended to use an environment such as `virtualenv` or `conda`.**
+
+---
+
+### Front-end (Node.js + Angular + TailwindCSS)
+
+* **Node:** `v24.8.0`
+* **Framework:** Angular 20 (`@angular/core`, `@angular/common`, `@angular/forms`, `@angular/router`)
+* **Reactive & runtime support:** `rxjs`, `zone.js`
+* **Styling:** `tailwindcss`, `postcss`, `@tailwindcss/postcss`
+* **Dev tools:** `@angular/cli`, `typescript`, `karma`, `jasmine`
+
+Install dependencies:
+
+```bash
+cd front
+npm install
+```
+
+---
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/cdansantana/pinpeople-technicalcase.git
+cd pinpeople-technicalcase
+```
+
+2. Install back-end dependencies:
+
+```bash
+cd back
+pip install -r requirements.txt
+```
+
+3. Install front-end dependencies:
+
+```bash
+cd front
+npm install
+```
+
+4. Optional: Prepare Docker environment:
+
+```bash
+make compose-up
+```
+
+---
+
+## Running the Application
+
+### Back-end
+
+* Development (auto-reload):
+
+```bash
+make back-dev
+```
+
+* Production:
+
+```bash
+make back-prd
+```
+
+* Run tests with coverage:
+
+```bash
+make back-coverage
+```
+
+* Run unit/functional tests:
+
+```bash
+make back-test
+```
+
+### Front-end
+
+* Start Angular development server:
+
+```bash
+make front-dev
+```
+
+Visit [http://localhost:8080](http://localhost:8080) to access the front-end.
+
+---
+
+### Using Docker
+
+* Build and run containers:
+
+```bash
+make compose-up-build
+```
+
+* Run containers in detached mode:
+
+```bash
+make compose-up
+```
+
+* Stop containers:
+
+```bash
+make compose-down
+```
+
+* Clean containers, images, and volumes:
+
+```bash
+make compose-clear
+```
+
+* Prune Docker system:
+
+```bash
+make compose-prune
+```
+
+---
+
+## Notes
+
+* Requires **Python >= 3.11** and **Node.js >= 20**.
+* Default database: sqlite, and with docker PostgreSQL.
+* Back-end supports JWT authentication.
+* For development, run `make back-dev` and `make front-dev` simultaneously.
+* Use `make help` to see all available commands.
+
+---
+
+---
+
 ## About the Challenge
 
 This is your opportunity to dive into a real-world dataset and create something extraordinary. Whether you're passionate about data analysis, visualization, backend development, or creative exploration, there's a task here that's perfect for you. Choose the challenges that excite you and let your skills shine!

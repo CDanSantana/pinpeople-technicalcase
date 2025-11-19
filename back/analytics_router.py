@@ -113,7 +113,7 @@ def company_average_feedback(
     for field in SCORE_FIELDS:
         vals = collect_scores_from_respostas(respostas, field)
         out[field] = stats_basic(vals)
-    return out
+    return {"scores": out}
 
 
 @router.get("/company/enps_distribution")

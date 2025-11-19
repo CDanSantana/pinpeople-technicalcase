@@ -1,6 +1,7 @@
 // --- Interfaces para Filtros e Dados ---
 
 export interface FilterOption {
+descricao: any;
   id: number;
   nome: string;
 }

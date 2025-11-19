@@ -3,17 +3,19 @@ import { Component, computed, effect, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { CountResult, ENPSDistributionResult, FeedbackStats, FilterMap, RouteConfig, SelectedFilters, SentimentRanking } from './interfaces';
+import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { firstValueFrom, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, CommonModule, FormsModule],
   templateUrl: './app.html',
-  styleUrl: './app.scss',
+  styleUrls: ['./app.scss'],
   standalone: true
 })
 export class App implements OnInit {
   protected readonly title = signal('front');
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = 'http://localhost:8000';
 
   isLoading = signal(false);
   errorMsg = signal<string | null>(null);
@@ -33,25 +35,25 @@ export class App implements OnInit {
   });
 
   availableRoutes: RouteConfig[] = [
-    { name: 'Colaboradores por Área', path: '/company/employees_per_area', description: 'Contagem de colaboradores por área, com filtros demográficos.' },
-    { name: 'Média de Feedback', path: '/company/average_feedback', description: 'Média e estatísticas dos scores de feedback por campo.' },
-    { name: 'Distribuição ENPS', path: '/company/enps_distribution', description: 'Distribuição Promotores/Neutros/Detratores e histograma de scores.' },
-    { name: 'Distribuição por Tempo', path: '/company/tenure_distribution', description: 'Distribuição da força de trabalho por tempo de empresa (tenure).' },
-    { name: 'Comentários Abertos', path: '/company/comments', description: 'Visualização de comentários abertos com filtro por tópico e range de score.' },
-    { name: 'Análise de Sentimento', path: '/company/sentiments', description: 'Resumo de sentimento (P/N/N), temas (tags) e ranking por área.' },
-    { name: 'Resumo Executivo das Áreas', path: '/areas/summary', description: 'Tabela de benchmarking comparando scores médios de todas as áreas (Heatmap).' },
-    { name: 'Scores por Área', path: '/area/{area_id}/scores', requiredPathParams: ['area_id'], description: 'Estatísticas de scores para uma área específica.' },
+    { name: 'Colaboradores por Área', path: '/analytics/company/employees_per_area', description: 'Contagem de colaboradores por área, com filtros demográficos.' },
+    { name: 'Média de Feedback', path: '/analytics/company/average_feedback', description: 'Média e estatísticas dos scores de feedback por campo.' },
+    { name: 'Distribuição ENPS', path: '/analytics/company/enps_distribution', description: 'Distribuição Promotores/Neutros/Detratores e histograma de scores.' },
+    { name: 'Distribuição por Tempo', path: '/analytics/company/tenure_distribution', description: 'Distribuição da força de trabalho por tempo de empresa (tenure).' },
+    { name: 'Comentários Abertos', path: '/analytics/company/comments', description: 'Visualização de comentários abertos com filtro por tópico e range de score.' },
+    { name: 'Análise de Sentimento', path: '/analytics/company/sentiments', description: 'Resumo de sentimento (P/N/N), temas (tags) e ranking por área.' },
+    { name: 'Resumo Executivo das Áreas', path: '/analytics/areas/summary', description: 'Tabela de benchmarking comparando scores médios de todas as áreas (Heatmap).' },
+    { name: 'Scores por Área', path: '/analytics/area/{area_id}/scores', requiredPathParams: ['area_id'], description: 'Estatísticas de scores para uma área específica.' },
     { name: 'ENPS por Área', path: '/area/{area_id}/enps', requiredPathParams: ['area_id'], description: 'Distribuição PND e ENPS Score para uma área específica.' },
-    { name: 'Perfil do Colaborador', path: '/employee/{participante_id}/profile', requiredPathParams: ['participanteId'], description: 'Visualização do perfil, demografia e scores de um colaborador.' },
-    { name: 'Comparação Individual', path: '/employee/{participante_id}/comparison', requiredPathParams: ['participanteId'], description: 'Benchmarking de scores do colaborador vs. Área e Empresa.' },
+    { name: 'Perfil do Colaborador', path: '/analytics/employee/{participante_id}/profile', requiredPathParams: ['participanteId'], description: 'Visualização do perfil, demografia e scores de um colaborador.' },
+    { name: 'Comparação Individual', path: '/analytics/employee/{participante_id}/comparison', requiredPathParams: ['participanteId'], description: 'Benchmarking de scores do colaborador vs. Área e Empresa.' },
   ];
 
   selectedRoute = signal<RouteConfig>(this.availableRoutes[0]);
 
   filterKeys = ['cargo_id', 'area_id', 'localidade_id', 'geracao_id', 'tempo_empresa_id'];
-  scoreFields = ['q01_satisfacao', 'q02_ambiente', 'q03_lideranca', 'q04_crescimento', 'q05_remuneracao', 'enps_score'];
+  scoreFields = ['interesse_cargo_score', 'contribuicao_score', 'aprendizado_desenvolvimento_score', 'feedback_score', 'interacao_gestor_score', 'clareza_carreira_score', 'expectativa_permanencia_score', 'enps_score'];
 
-  constructor() {
+  constructor(private httpClient: HttpClient) {
     // Efeito para resetar os resultados ao trocar de rota
     effect(() => {
       this.selectedRoute();
@@ -73,15 +75,15 @@ export class App implements OnInit {
   applyFilter(key: string, event: Event) {
     let value: number | string | null = null;
     if (event && 'target' in event) {
-        if ((event.target as HTMLSelectElement).value === 'null') {
-            value = null;
-        } else if (key === 'participanteId' || key.includes('score_')) {
-            value = parseInt((event.target as HTMLInputElement).value) || null;
-        } else {
-            value = (event.target as HTMLSelectElement).value;
-        }
+      if ((event.target as HTMLSelectElement).value === 'null') {
+        value = null;
+      } else if (key === 'participanteId' || key.includes('score_')) {
+        value = parseInt((event.target as HTMLInputElement).value) || null;
+      } else {
+        value = (event.target as HTMLSelectElement).value;
+      }
     } else if (event) {
-        value = (event as any).detail; // Para casos de componentes customizados
+      value = (event as any).detail; // Para casos de componentes customizados
     }
 
     this.selectedFilters.update(filters => ({
@@ -93,37 +95,48 @@ export class App implements OnInit {
 
   // --- Lógica de Chamada à API (Simulada) ---
 
-  async fetchFilterOptions() {
-    // SIMULAÇÃO: No ambiente real, você faria chamadas para /api/cargo-raw, /api/area-raw, etc.
+  async fetchFilterOptions(): Promise<FilterMap> {
+    this.isLoading.set(true);
+
     const mockFilters: FilterMap = {
-      cargo_id: [
-        { id: 1, nome: 'Desenvolvedor' },
-        { id: 2, nome: 'Analista de Dados' },
-        { id: 3, nome: 'Gerente' },
-      ],
-      area_id: [
-        { id: 101, nome: 'Tecnologia' },
-        { id: 102, nome: 'Marketing' },
-        { id: 103, nome: 'Financeiro' },
-      ],
-      localidade_id: [
-        { id: 201, nome: 'São Paulo' },
-        { id: 202, nome: 'Rio de Janeiro' },
-      ],
-      geracao_id: [
-        { id: 301, nome: 'Geração X' },
-        { id: 302, nome: 'Millennials' },
-        { id: 303, nome: 'Geração Z' },
-      ],
-      tempo_empresa_id: [
-        { id: 401, nome: '0-1 Ano' },
-        { id: 402, nome: '1-3 Anos' },
-        { id: 403, nome: '3-5 Anos' },
-        { id: 404, nome: '+5 Anos' },
-      ],
+      cargo_id: [],
+      area_id: [],
+      localidade_id: [],
+      geracao_id: [],
+      tempo_empresa_id: [],
     };
 
+    const endpoints = {
+      cargo_id: `${this.apiUrl}/cargo-raw`,
+      area_id: `${this.apiUrl}/area-raw`,
+      localidade_id: `${this.apiUrl}/localidade-raw`,
+      geracao_id: `${this.apiUrl}/geracao-raw`,
+      tempo_empresa_id: `${this.apiUrl}/tempo_empresa-raw`,
+    };
+
+    try {
+      const result = await firstValueFrom(
+        forkJoin({
+          cargo_id: this.httpClient.get<any[]>(endpoints.cargo_id),
+          area_id: this.httpClient.get<any[]>(endpoints.area_id),
+          localidade_id: this.httpClient.get<any[]>(endpoints.localidade_id),
+          geracao_id: this.httpClient.get<any[]>(endpoints.geracao_id),
+          tempo_empresa_id: this.httpClient.get<any[]>(endpoints.tempo_empresa_id),
+        })
+      );
+
+      // Preenche o mockFilters com os dados recebidos
+      Object.assign(mockFilters, result);
+
+    } catch (err: any) {
+      console.error('Erro ao carregar filtros:', err);
+      this.errorMsg.set('Erro ao carregar filtros');
+    } finally {
+      this.isLoading.set(false);
+    }
+
     this.filterOptions.set(mockFilters);
+    return mockFilters;
   }
 
   async fetchData() {
@@ -149,17 +162,23 @@ export class App implements OnInit {
 
     // Substituir Path Parameters
     if (route.requiredPathParams?.includes('area_id')) {
-        url = url.replace('{area_id}', String(filters['area_id']));
+      url = url.replace('{area_id}', String(filters['area_id']));
     }
     if (route.requiredPathParams?.includes('participanteId')) {
-        url = url.replace('{participante_id}', String(filters.participanteId));
+      url = url.replace('{participante_id}', String(filters.participanteId));
     }
 
     // Adicionar Query Parameters
     const queryParams = new URLSearchParams();
     for (const key of this.filterKeys) {
-      if (filters[key] !== null) {
-        queryParams.append(key, String(filters[key]));
+      const val = filters[key];
+      if (val !== null) {
+        const num = Number(String(val).split(':')[0]);
+        if (!isNaN(num) && num > 0) {
+          queryParams.append(key, String(num));
+        } else {
+          console.warn(`Valor não é número para ${key}:`, val);
+        }
       }
     }
     // Adicionar filtros específicos (score, topic)
@@ -172,13 +191,18 @@ export class App implements OnInit {
       url += `?${query}`;
     }
 
-    console.log("Simulando chamada API para:", url);
-
-    // 3. Simulação da Chamada (AQUI VOCÊ COLOCARIA O fetch REAL)
     try {
       // await new Promise(resolve => setTimeout(resolve, 800)); // Simula latência
-      const mockData = this.getMockData(route.name, filters);
-      this.apiResult.set(mockData);
+      //const mockData = this.getMockData(route.name, filters);
+      let data: [] = [];
+      this.httpClient.get<any>(url).subscribe({
+        next: (data) => {
+          this.apiResult.set(data);
+        },
+        error: (err) => {
+          console.error('Erro na requisição:', err);
+        }
+      });
     } catch (e: any) {
       this.errorMsg.set(`Erro na simulação da API: ${e.message}`);
     } finally {
@@ -252,19 +276,19 @@ export class App implements OnInit {
     let shade;
 
     if (invert) {
-        // Para métricas onde baixo é bom (ex: % Negativo)
-        shade = Math.round(normalized * 500); // 0 -> 0 (claro), 100 -> 500 (escuro)
+      // Para métricas onde baixo é bom (ex: % Negativo)
+      shade = Math.round(normalized * 500); // 0 -> 0 (claro), 100 -> 500 (escuro)
     } else {
-        // Para métricas onde alto é bom (ex: Média)
-        shade = Math.round((1 - normalized) * 500); // 0 -> 500 (escuro), 100 -> 0 (claro)
-        shade = 500 - shade; // Inverte para: 0 -> 50 (claro), 10 -> 500 (escuro)
+      // Para métricas onde alto é bom (ex: Média)
+      shade = Math.round((1 - normalized) * 500); // 0 -> 500 (escuro), 100 -> 0 (claro)
+      shade = 500 - shade; // Inverte para: 0 -> 50 (claro), 10 -> 500 (escuro)
     }
 
     // Garante que o shade fique entre 50 e 500 (ou 800 para cores escuras)
     const finalShade = Math.max(50, Math.min(800, shade));
     return `bg-${color}-${finalShade} text-white`;
   }
-  
+
   // Retorna as chaves de objeto para ranking
   getRankingKeys(ranking: SentimentRanking): string[] {
     return Object.keys(ranking);
@@ -276,7 +300,7 @@ export class App implements OnInit {
     return this.scoreFields.map((field, index) => {
       const avg = scores[field]?.mean || 0;
       // Normaliza o score de 0-10 para um raio de 0-45
-      const radius = (avg / 5) * 45; 
+      const radius = (avg / 5) * 45;
       const angle = (index * (360 / this.scoreFields.length)) - 90;
       const x = radius * Math.cos(angle * Math.PI / 180);
       const y = radius * Math.sin(angle * Math.PI / 180);
@@ -303,7 +327,6 @@ export class App implements OnInit {
     const topics = ['ENPS', 'Cultura', 'Lideranca'];
     const topic = filters['topic'] as string || 'ENPS';
     const participantName = `Colaborador ${filters.participanteId}`;
-    alert(`{routeName}, {filters}`);
     return [] as CountResult[];
   }
 

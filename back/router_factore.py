@@ -117,7 +117,7 @@ def create_crud_router(
     def list_items(
         request: Request,
         session: Session = Depends(session_dep),
-        limit: int = Query(10, ge=1),
+        limit: int = Query(999, ge=1),
         offset: int = Query(0, ge=0),
         order_by: Optional[str] = "id",
         order: str = Query("asc", pattern="^(asc|desc)$"),
