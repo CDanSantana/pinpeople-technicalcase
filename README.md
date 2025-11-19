@@ -85,6 +85,12 @@ make compose-up
 
 ## Running the Application
 
+### Run development Back-end and Front-end in parallel
+
+```bash
+make -j2 dev
+```
+
 ### Back-end
 
 * Development (auto-reload):

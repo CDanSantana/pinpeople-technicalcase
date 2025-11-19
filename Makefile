@@ -33,7 +33,7 @@ compose-up: ## roda em segundo plano
 compose-down: ## termina a execução
 	@cd docker && docker compose down
 
-compose-clear:
+compose-clear: ## termina a execução e apaga imagens e containers da aplicação
 	@cd docker && \
 	docker compose down || true && \
 	docker container rm fastapi_back || true && \
@@ -43,8 +43,11 @@ compose-clear:
 	docker image rm fastapi_front_image || true && \
 	docker volume rm docker_fastapi_db_data || true
 
-compose-prune:
+compose-prune: ## limpa tudo o que não estiver em uso
 	@cd docker && docker system prune -f && docker volume prune -f
+
+.PHONY: dev
+dev: back-dev front-dev ## roda backend e frontend em paralelo use make -j2 dev
 
 %::
 	@echo "Target inválido: '$@'"
