@@ -28,7 +28,7 @@ export class App implements OnInit {
     localidade_id: null,
     geracao_id: null,
     tempo_empresa_id: null,
-    topic: 'ENPS', // Default for comments/sentiment
+    topic: 'enps', // Default for comments/sentiment
     score_min: null,
     score_max: null,
     participanteId: null, // For employee profile/comparison
@@ -324,8 +324,8 @@ export class App implements OnInit {
 
   private getMockData(routeName: string, filters: SelectedFilters): any {
     const area = this.filterOptions()['area_id']?.find(a => a.id === filters['area_id'])?.nome || 'Área Selecionada';
-    const topics = ['ENPS', 'Cultura', 'Lideranca'];
-    const topic = filters['topic'] as string || 'ENPS';
+    const topics = ['enps', 'expectativa_permanencia', 'clareza_carreira', 'interacao_gestor', 'feedback', 'aprendizado', 'contribuicao', 'interesse_cargo'];
+    const topic = filters['topic'] as string || 'enps';
     const participantName = `Colaborador ${filters.participanteId}`;
     return [] as CountResult[];
   }

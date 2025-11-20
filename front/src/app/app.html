@@ -47,9 +47,14 @@
         <label for="topic" class="text-sm font-medium text-gray-600 mb-1">Tópico</label>
         <select id="topic" [(ngModel)]="selectedFilters()['topic']" (change)="applyFilter('topic', $event)"
           class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 transition duration-150">
-          <option value="ENPS">ENPS</option>
-          <option value="Cultura">Cultura</option>
-          <option value="Lideranca">Liderança</option>
+          <option value="enps">ENPS</option>
+          <option value="expectativa_permanencia">Expectativa de permanencia</option>
+          <option value="clareza_carreira">Clareza na Carreira</option>
+          <option value="interacao_gestor">Interação com o Gestor</option>
+          <option value="feedback">Feedback</option>
+          <option value="aprendizado">Aprendizado</option>
+          <option value="contribuicao">Contribuição</option>
+          <option value="interesse_cargo">Interesse no Cargo</option>
         </select>
       </div>
       <div class="flex flex-col">
