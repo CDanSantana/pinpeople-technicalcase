@@ -162,7 +162,7 @@ export class App implements OnInit {
 
     // Substituir Path Parameters
     if (route.requiredPathParams?.includes('area_id')) {
-      url = url.replace('{area_id}', String(filters['area_id']));
+      url = url.replace('{area_id}', String(filters['area_id']).split(':')[0]);
     }
     if (route.requiredPathParams?.includes('participanteId')) {
       url = url.replace('{participante_id}', String(filters.participanteId));
