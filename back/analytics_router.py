@@ -5,7 +5,6 @@ from typing import Optional, List, Dict, Any
 from models import RespostaPesquisa, Area, Cargo, TempoEmpresa, Participante
 from analytics_stats import stats_basic, percentiles, iqr
 from main import get_session, settings
-from transformers import pipeline
 import re
 from collections import Counter
 
@@ -16,6 +15,7 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 sentiment_model = None
 if settings.ENABLE_SENTIMENT_ENDPOINT:
+    from transformers import pipeline
     sentiment_model = pipeline(
         "sentiment-analysis",
         model="lipaoMai/bert-sentiment-model-portuguese"

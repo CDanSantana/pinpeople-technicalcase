@@ -14,6 +14,11 @@ The chosen tasks are marked in the appropriate section.
 
 ## Dependencies
 
+### Notice About Sentiment Analysis
+
+**In order to enable sentiment analysis with ai, you will need to uncoment the lines starting with `#` on the `requirements.txt` file.**
+**They were disabled due to disk usage.**
+
 ### Back-end (Python + FastAPI)
 
 * **Python:** `3.11`
