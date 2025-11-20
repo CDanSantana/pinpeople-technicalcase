@@ -295,15 +295,23 @@ export class App implements OnInit {
   }
 
   // Calcula os pontos para o Gráfico Radar (apenas para demonstração)
-  calculateRadarPoints(scores: FeedbackStats): string {
+  calculateRadarPoints(scores: any): string {
     if (!scores) return "";
+
     return this.scoreFields.map((field, index) => {
       const avg = scores[field]?.mean || 0;
-      // Normaliza o score de 0-10 para um raio de 0-45
-      const radius = (avg / 5) * 45;
+
+      // Normalização segura: escala de 1-5 para raio de 5-45
+      // Garante que o valor fique entre 1 e 5
+      const normalizedValue = Math.max(1, Math.min(5, avg));
+
+      // Mapeia 1-5 para 5-45 (raio mínimo 5, máximo 45)
+      const radius = 5 + (normalizedValue - 1) * (40 / 4);
+
       const angle = (index * (360 / this.scoreFields.length)) - 90;
       const x = radius * Math.cos(angle * Math.PI / 180);
       const y = radius * Math.sin(angle * Math.PI / 180);
+
       return `${x},${y}`;
     }).join(' ');
   }
@@ -329,5 +337,30 @@ export class App implements OnInit {
     const participantName = `Colaborador ${filters.participanteId}`;
     return [] as CountResult[];
   }
+
+  // Estilização
+  getRouteButtonClass(route: RouteConfig): string {
+    const baseClasses = 'relative px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ease-out whitespace-nowrap group';
+
+    if (this.selectedRoute().name === route.name) {
+      return `${baseClasses} text-white shadow-lg`;
+    } else {
+      return `${baseClasses} text-gray-700 hover:text-gray-900 hover:bg-white/50 hover:shadow-md`;
+    }
+  }
+
+  // Função específica para o Resumo Executivo (apenas azul)
+  getExecutiveHeatmapColor(value: number): string {
+    // Define faixas fixas baseadas no valor - apenas tons de indigo 
+    if (value >= 7) return 'bg-indigo-600 text-white';
+    if (value >= 6.5) return 'bg-indigo-500 text-white';
+    if (value >= 6) return 'bg-indigo-400 text-gray-900';
+    if (value >= 5.5) return 'bg-indigo-300 text-gray-900';
+    if (value >= 5) return 'bg-indigo-200 text-gray-900';
+    if (value >= 4) return 'bg-indigo-100 text-gray-900';
+    if (value >= 3.5) return 'bg-indigo-50 text-gray-900';
+    return 'bg-gray-100 text-gray-900';
+  }
+
 
 }

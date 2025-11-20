@@ -5,20 +5,28 @@
       Dashboard
     </h1>
     <br />
-    <p class="text-gray-600">Visualização de dados</p>
+    <section class="mb-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
 
-    <!-- Navegação Segmentada -->
-    <div class="mt-6 flex flex-wrap gap-2 p-1 bg-white rounded-xl shadow-lg border">
-      @for (route of availableRoutes; track route.name) {
-      <button (click)="selectRoute(route)"
-        [class]="{'bg-indigo-600 text-white shadow-md': selectedRoute().name === route.name, 'text-gray-700 hover:bg-indigo-50': selectedRoute().name !== route.name}"
-        [ariaSelected]="selectedRoute().name === route.name"
-        [ariaPressed]="selectedRoute().name === route.name"
-        class="px-4 py-2 text-sm font-medium rounded-lg transition duration-150 ease-in-out whitespace-nowrap">
-        {{ route.name }}
-      </button>
-      }
-    </div>
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Visualização de dados</h2>
+
+      <!-- Navegação Segmentada -->
+      <div class="bg-white/60 rounded-2xl shadow-inner border border-gray-200/60 p-1.5">
+        <div class="flex flex-wrap gap-1">
+          @for (route of availableRoutes; track route.name) {
+          <button (click)="selectRoute(route)" [class]="getRouteButtonClass(route)"
+            [ariaSelected]="selectedRoute().name === route.name"
+            class="relative px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ease-out whitespace-nowrap group">
+            <span class="relative z-10">{{ route.name }}</span>
+            @if (selectedRoute().name === route.name) {
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/25">
+            </div>
+            }
+          </button>
+          }
+        </div>
+      </div>
+    </section>
   </header>
 
   <!-- Seção de Filtros Globais -->
@@ -223,7 +231,7 @@
         </div>
       </div>
 
-      <!-- Gráfico Radar Simplificado -->
+<!-- Gráfico Radar Simplificado -->
       <div class="p-6 bg-white rounded-xl shadow-lg flex flex-col items-center justify-center">
         <h3 class="text-lg font-semibold mb-4 text-gray-700">Gráfico Radar (Média)</h3>
         <svg viewBox="0 0 100 100" class="w-full max-w-xs h-auto">
@@ -344,7 +352,7 @@
         @for (comment of commentsData.comments; track $index) {
         <div class="p-4 rounded-lg shadow-sm border" [ngClass]="getScoreColor(comment.score)">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full "
               [ngClass]="getScoreColor(comment.score, 'bg')">
               Score: {{ comment.score }}
             </span>
@@ -487,26 +495,32 @@
             <tr>
               <th
                 class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
-                Área</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total
-                Respostas</th>
+                Área
+              </th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total Respostas
+              </th>
               @for (field of scoreFields; track field) {
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider capitalize">{{
-                field.replace('_', ' ') }} (Média)</th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider capitalize">
+                {{ field.replace('_', ' ') }} (Média)
+              </th>
               }
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             @for (area of summaryData; track area.area_id) {
-            <tr>
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
               <td
                 class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10 border-r">
-                {{ area.area_nome }}</td>
-              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 text-center">{{ area.total_respostas }}</td>
+                {{ area.area_nome }}
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 text-center bg-gray-50">
+                {{ area.total_respostas }}
+              </td>
               @for (field of scoreFields; track field) {
               @let avg = area.averages[field];
-              <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-center"
-                [ngClass]="getHeatmapColor(avg, 'indigo', false, 5)" [title]="'Média: ' + (avg | number:'1.2-2')">
+              <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-center transition-all duration-200"
+                [ngClass]="getExecutiveHeatmapColor(avg)" [title]="'Média: ' + (avg | number:'1.2-2')">
                 {{ avg | number:'1.2-2' }}
               </td>
               }
@@ -516,6 +530,7 @@
         </table>
       </div>
     </div>
+
     } @else if (selectedRoute().name === 'Perfil do Colaborador') {
     <!-- Perfil do Colaborador -->
     @let profileData = apiResult();
@@ -582,7 +597,7 @@
     <div class="p-6 bg-white rounded-xl shadow-lg">
       <h3 class="text-lg font-semibold mb-4 text-gray-700">Benchmarking do Colaborador (ID: {{ compData.participante_id
         }})</h3>
-      <p class="text-sm text-gray-600 mb-6">Comparação contra: <strong class="text-indigo-600">{{ areaName }}</strong> e
+      <p class="text-sm text-gray-600 mb-6">Comparação entre: <strong class="text-indigo-600">{{ areaName }}</strong> e
         Média da Empresa</p>
 
       <div class="overflow-x-auto">
