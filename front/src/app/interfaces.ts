@@ -28,7 +28,7 @@ export interface RouteConfig {
 // Interfaces para os dados de retorno do FastAPI
 export interface StatsBasic {
   mean: number;
-  std_dev: number;
+  stddev_pop: number;
   min: number;
   max: number;
   count: number;
